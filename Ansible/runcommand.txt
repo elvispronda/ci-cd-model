@@ -1,0 +1,2 @@
+##HOW TO RUN SCRIPT
+ansible-playbook -i inventory deploy.yml --extra-vars "server_port=8080"

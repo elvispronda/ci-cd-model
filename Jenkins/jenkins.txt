@@ -1,0 +1,55 @@
+pipeline {
+    agent any
+
+    environment {
+        AWS_REGION = "us-east-1"
+        ECR_REPO = "1234567890.dkr.ecr.${AWS_REGION}.amazonaws.com/trading-app"
+        EKS_CLUSTER = "trading-cluster"
+    }
+
+    stages {
+        stage('Checkout Code') {
+            steps {
+                git 'https://github.com/your-repo/trading-app.git'
+            }
+        }
+
+        stage('Terraform - Provision Infrastructure') {
+            steps {
+                withAWS(credentials: 'aws-credentials', region: AWS_REGION) {
+                    sh 'terraform init'
+                    sh 'terraform apply -var "aws_region=${AWS_REGION}" -auto-approve'
+                }
+            }
+        }
+
+        stage('Build & Push Docker Image') {
+            steps {
+                sh '''
+                    docker build -t trading-app .
+                    docker tag trading-app $ECR_REPO:latest
+                    aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $ECR_REPO
+                    docker push $ECR_REPO:latest
+                '''
+            }
+        }
+
+        stage('Deploy with Ansible') {
+            steps {
+                sh 'ansible-playbook -i inventory deploy.yml --extra-vars "server_port=80"'
+            }
+        }
+
+        stage('Deploy to EKS with Helm') {
+            steps {
+                sh 'helm install trading-app ./helm --set image.repository=$ECR_REPO'
+            }
+        }
+
+        stage('Run Tests') {
+            steps {
+                sh 'pytest tests/'
+            }
+        }
+    }
+}

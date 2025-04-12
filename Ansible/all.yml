@@ -1,0 +1,4 @@
+## Define Variables (group_vars/all.yml)
+app_name: "trading-app"
+docker_image: "1234567890.dkr.ecr.us-east-1.amazonaws.com/trading-app:latest"
+server_port: 80

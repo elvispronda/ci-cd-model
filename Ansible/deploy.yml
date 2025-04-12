@@ -1,0 +1,20 @@
+- name: Deploy Trading Application
+  hosts: trading_servers
+  vars_files:
+    - group_vars/all.yml
+  tasks:
+    - name: Install Docker
+      apt:
+        name: docker.io
+        state: present
+
+    - name: Pull Docker Image
+      shell: "docker pull {{ docker_image }}"
+
+    - name: Run Container
+      shell: "docker run -d --name {{ app_name }} -p {{ server_port }}:80 {{ docker_image }}"
+
+
+##HOW TO RUN SCRIPT
+# ansible-playbook -i inventory deploy.yml --extra-vars "server_port=8080"
+
