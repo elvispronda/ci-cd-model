@@ -22,3 +22,5 @@ resource "aws_db_instance" "trading_db" {
   username         = var.db_username
   password         = var.db_password
 }
+
+#################################################
